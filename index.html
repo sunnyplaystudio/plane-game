@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Emoji Uçak Oyunu</title>
+<title>Plane Game</title>
 
 <style>
 body { margin:0; overflow:hidden; background:#87CEEB; font-family:Arial; touch-action:none;}
@@ -26,6 +26,16 @@ button {
  font-size:2.5vw;
  padding:1.5vw;
 }
+
+#info {
+ position:absolute;
+ bottom:10px;
+ left:10px;
+ font-size:12px;
+ background:#00000055;
+ padding:5px 10px;
+ border-radius:8px;
+}
 </style>
 </head>
 
@@ -36,9 +46,11 @@ button {
 <div id="scoreboard">Skor: 0 | Rekor: 0</div>
 
 <div id="controls">
-<button onclick="startGame()">▶️ Start</button>
-<button onclick="pauseGame()">⏸️ Pause</button>
+<button onclick="startGame()">▶️</button>
+<button onclick="pauseGame()">⏸️</button>
 </div>
+
+<div id="info">Tap to shoot</div>
 
 <script>
 const canvas = document.getElementById("game");
@@ -51,7 +63,7 @@ function resize(){
 resize();
 window.addEventListener("resize", resize);
 
-// 🔊 SES (Aynen korundu)
+// SES
 const shootSound = new Audio("shoot.mp3");
 const explosionSound = new Audio("explosion.mp3");
 
