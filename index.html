@@ -37,7 +37,7 @@ button {
  border-radius:8px;
 }
 
-/* 💥 GAME OVER PANEL */
+/* GAME OVER PANEL */
 #gameOver {
  position:absolute;
  top:50%;
@@ -48,6 +48,10 @@ button {
  border-radius:12px;
  text-align:center;
  display:none;
+}
+
+#gameOver button {
+ margin-top:10px;
 }
 </style>
 </head>
@@ -65,7 +69,6 @@ button {
 
 <div id="info">Tap to shoot</div>
 
-<!-- 💥 PANEL -->
 <div id="gameOver">
 <h2 id="finalText"></h2>
 <button onclick="restartGame()">Restart</button>
@@ -232,9 +235,9 @@ function draw(){
 
 setInterval(()=>{update();draw();},1000/60);
 
-function startGame(){ 
+function startGame(){
  panel.style.display="none";
- running=true; 
+ running=true;
 }
 
 function pauseGame(){ running=false; }
