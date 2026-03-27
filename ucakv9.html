@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Emoji Uçak Oyunu</title>
+
+<style>
+body { margin:0; overflow:hidden; background:#87CEEB; font-family:Arial; touch-action:none;}
+canvas { display:block; }
+
+#scoreboard {
+ position:absolute;
+ top:10px;
+ right:10px;
+ font-size:3vw;
+}
+
+#controls {
+ position:absolute;
+ top:10px;
+ left:10px;
+}
+
+button {
+ font-size:2.5vw;
+ padding:1.5vw;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="game"></canvas>
+
+<div id="scoreboard">Skor: 0 | Rekor: 0</div>
+
+<div id="controls">
+<button onclick="startGame()">▶️ Start</button>
+<button onclick="pauseGame()">⏸️ Pause</button>
+</div>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+function resize(){
+ canvas.width = window.innerWidth;
+ canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+// 🔊 SES (Aynen korundu)
+const shootSound = new Audio("shoot.mp3");
+const explosionSound = new Audio("explosion.mp3");
+
+function playShoot(){
+ shootSound.currentTime=0;
+ shootSound.play().catch(()=>{});
+}
+
+function playExplosion(){
+ explosionSound.currentTime=0;
+ explosionSound.play().catch(()=>{});
+}
+
+// OYUN
+let plane={x:canvas.width/2,y:canvas.height-120};
+let bullets=[], enemies=[], clouds=[], scoreTexts=[];
+let score=0, highScore=localStorage.getItem("highScore")||0;
+let running=false;
+
+function getLevel(){
+ return Math.floor(score/500)+1;
+}
+
+function restartGame(){
+ bullets=[]; enemies=[]; clouds=[]; scoreTexts=[];
+ score=0;
+ plane.x=canvas.width/2;
+ running=true;
+}
+
+let keys={};
+
+document.addEventListener("keydown",e=>{
+ keys[e.key]=true;
+
+ if(e.key===" " && running){
+  bullets.push({x:plane.x,y:plane.y});
+  playShoot();
+ }
+});
+
+document.addEventListener("keyup",e=>{
+ keys[e.key]=false;
+});
+
+canvas.addEventListener("touchstart",()=>{
+ if(running){
+  bullets.push({x:plane.x,y:plane.y});
+  playShoot();
+ }
+});
+
+canvas.addEventListener("touchmove",e=>{
+ let x=e.touches[0].clientX;
+ x=Math.max(40,Math.min(canvas.width-40,x));
+ plane.x=x;
+});
+
+setInterval(()=>{
+ if(running){
+  let types=[
+   {emoji:"🎈",p:10},
+   {emoji:"🚗",p:5},
+   {emoji:"🛢️",p:5},
+   {emoji:"🚀",p:15},
+   {emoji:"✈️",p:10}
+  ];
+  let t=types[Math.random()*types.length|0];
+  enemies.push({x:Math.random()*canvas.width,y:-40,type:t.emoji,p:t.p});
+ }
+},1000);
+
+setInterval(()=>{
+ if(running) clouds.push({x:Math.random()*canvas.width,y:-40});
+},1500);
+
+function hit(a,b){
+ return Math.abs(a.x-b.x)<40 && Math.abs(a.y-b.y)<40;
+}
+
+function update(){
+ if(!running) return;
+
+ let level=getLevel();
+
+ if(keys["ArrowLeft"]) plane.x-=8;
+ if(keys["ArrowRight"]) plane.x+=8;
+
+ plane.x=Math.max(40,Math.min(canvas.width-40,plane.x));
+
+ bullets.forEach(b=>b.y-=10);
+ enemies.forEach(e=>e.y+=2+level*0.5);
+ clouds.forEach(c=>c.y+=1+level*0.2);
+
+ enemies.forEach((e,ei)=>{
+  bullets.forEach((b,bi)=>{
+   if(hit(b,e)){
+    score+=e.p;
+    scoreTexts.push({x:e.x,y:e.y,text:"+"+e.p+" 💰",life:30});
+    enemies.splice(ei,1);
+    bullets.splice(bi,1);
+    playExplosion();
+   }
+  });
+
+  if(hit(plane,e)){
+    running=false;
+    setTimeout(()=>{
+     alert("GAME OVER 😎 Skor: "+score);
+     restartGame();
+    },100);
+  }
+ });
+
+ if(score>highScore){
+  highScore=score;
+  localStorage.setItem("highScore",highScore);
+ }
+
+ document.getElementById("scoreboard").innerText=
+ "Skor: "+score+" | Rekor: "+highScore;
+}
+
+function draw(){
+ ctx.clearRect(0,0,canvas.width,canvas.height);
+
+ ctx.font=(canvas.width/18)+"px Arial";
+
+ clouds.forEach(c=>ctx.fillText("☁️",c.x,c.y));
+ ctx.fillText("✈️",plane.x,plane.y);
+
+ bullets.forEach(b=>ctx.fillText("💥",b.x,b.y));
+ enemies.forEach(e=>ctx.fillText(e.type,e.x,e.y));
+
+ scoreTexts.forEach((t,i)=>{
+  ctx.fillStyle="gold";
+  ctx.font=(canvas.width/24)+"px Arial";
+  ctx.fillText(t.text,t.x,t.y);
+  t.y--;
+  t.life--;
+  if(t.life<=0) scoreTexts.splice(i,1);
+ });
+}
+
+setInterval(()=>{update();draw();},1000/60);
+
+function startGame(){ running=true; }
+function pauseGame(){ running=false; }
+</script>
+
+</body>
+</html>
